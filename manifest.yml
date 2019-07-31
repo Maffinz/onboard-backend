@@ -1,13 +1,15 @@
----
 applications:
-- instances: 1
-  timeout: 180
-  name: PythonFlaskbackend
-  buildpack: python_buildpack
+- buildpacks:
+  - python_buildpack
   command: python manage.py start 0.0.0.0:$PORT
-  memory: 256MB
-  domain: mybluemix.net
-  host: python-flask-backend
+  domain: null
   env:
-    FLASK_APP : server
-    FLASK_DEBUG : false
+    FLASK_APP: server
+    FLASK_DEBUG: false
+  host: null
+  instances: 1
+  memory: 256MB
+  name: PythonFlaskbackend
+  routes:
+  - route: Python-Flask-backend.us-south.cf.appdomain.cloud
+  timeout: 180
