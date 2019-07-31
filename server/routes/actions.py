@@ -16,7 +16,21 @@ conn = ibm_db.connect(
     '',
     '')
 
-@app.route('/user/<user_id>')
+@app.route('/user/delete=<user_id>', methods = ['GET', 'POST', 'DELETE'])
 def user(user_id):
-    pass
+    sql_delete = "DELETE FROM user WHERE id={0}".format(user_id)
+    sql_get = "SELECT FROM 'user' WHERE 'id'={0}".format(user_id)
+
+    stmt = ibm_db.exec_immediate(conn, sql_delete)
+    # sql_POST = "INSERT INTO 'user' WHERE 'id'={0}".format(user_id)
+    return sql_delete
+    # if request.method == 'GET':
+    #     #Do Get Request
+    #     pass
+    # if request.method == 'POST':
+    #     #Do Post Request
+    #     pass
+    # if request.method == 'DELETE':
+    #     sql = "DELETE FROM 'user' WHERE 'id'={user_id}"
+    #     return sql
 

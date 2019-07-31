@@ -30,6 +30,7 @@ conn = ibm_db.connect(
 """ """ 
 @app.route("/api/get_users")
 def get_users():
+    stmt = ibm_db.exec_immediate(conn, "SELECT * from USER")
     data = []
     result = ibm_db.fetch_assoc(stmt)
     while result != False:
