@@ -34,7 +34,7 @@ def get_users():
             data.append(result)
             result = ibm_db.fetch_assoc(stmt)
         content = {'data': data}
-        conn.close()
+        ibm_db.close(conn)
         return jsonify(content)
     return "not connected"
 
