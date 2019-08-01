@@ -5,8 +5,9 @@ import json
 from flask_cors import CORS
 CORS(app)
 
-
-conn = ibm_db.connect(
+@app.route('/action/delete=<user_id>', methods = ['GET', 'POST', 'DELETE'])
+def user(user_id):
+    conn = ibm_db.connect(
     'DATABASE=BLUDB;'
     'HOSTNAME=dashdb-txn-sbox-yp-dal09-04.services.dal.bluemix.net;'  # 127.0.0.1 or localhost works if it's local
     'PORT=50000;'
@@ -16,7 +17,20 @@ conn = ibm_db.connect(
     '',
     '')
 
-@app.route('/user/<user_id>')
-def user(user_id):
-    pass
+    sql_delete = "DELETE FROM user WHERE id={0}".format(user_id)
+    sql_get = "SELECT FROM user WHERE id={0}".format(user_id)
+
+    # sql_POST = "INSERT INTO 'user' WHERE 'id'={0}".format(user_id)
+    # if request.method == 'GET':
+    #     #Do Get Request
+    #     pass
+    # if request.method == 'POST':
+    #     #Do Post Request
+    #     pass
+    if request.method == 'DELETE':
+        cont = {"STATUS": "Ok"}
+        stmt = ibm_db.exec_immediate(conn, sql_delete)
+        return jsonify(cont)
+
+    conn.close()
 

@@ -5,7 +5,18 @@ import json
 from flask_cors import CORS
 CORS(app)
 
-def connect():
+conn = ibm_db.connect(
+        'DATABASE=BLUDB;'
+        'HOSTNAME=dashdb-txn-sbox-yp-dal09-04.services.dal.bluemix.net;'  # 127.0.0.1 or localhost works if it's local
+        'PORT=50000;'
+        'PROTOCOL=TCPIP;'
+        'UID=gqf91534;'
+        'PWD=n8rbtmpr-0nfphqs;',
+        '',
+        '')
+
+@app.route("/api/get_users")
+def get_users():
     conn = ibm_db.connect(
         'DATABASE=BLUDB;'
         'HOSTNAME=dashdb-txn-sbox-yp-dal09-04.services.dal.bluemix.net;'  # 127.0.0.1 or localhost works if it's local
@@ -15,19 +26,14 @@ def connect():
         'PWD=n8rbtmpr-0nfphqs;',
         '',
         '')
-    return conn
-
-@app.route("/api/get_users")
-def get_users():
-    conn = connect()
-    stmt = ibm_db.exec_immediate(conn, "SELECT * from USER")
-    data = []
-    result = ibm_db.fetch_assoc(stmt)
-    while result != False:
-        data.append(result)
-        result = ibm_db.fetch_assoc(stmt)
-    content = {'data': data}
     if conn:
+        stmt = ibm_db.exec_immediate(conn, "SELECT * from USER")
+        data = []
+        result = ibm_db.fetch_assoc(stmt)
+        while result != False:
+            data.append(result)
+            result = ibm_db.fetch_assoc(stmt)
+        content = {'data': data}
         conn.close()
         return jsonify(content)
     return "not connected"
