@@ -5,6 +5,7 @@ import json
 from flask_cors import CORS
 
 import server.services.generate_password as passw
+import server.services.user_service as user_s
 # from server.services.generate_password import random_password as random_pass
 
 CORS(app)
@@ -28,8 +29,9 @@ def get_maxID(conn=None):
         stmt = ibm_db.exec_immediate(conn, sql)
         result = ibm_db.fetch_assoc(stmt)
         cont = {"data": {
-            "error": ibm_db.stmt_errormsg(),
+            "user": result,
             },
+            "error": ibm_db.stmt_errormsg(),
             "status": "ok",
             "id": result["ID"]
         }
@@ -50,11 +52,18 @@ def get_maxID(conn=None):
 def test():
     conn = passw.connect()
 
+    # store = passw.getJSON()
 
-    user = get_maxID(conn)
-    stmt_1 = ibm_db.exec_immediate(conn, "SELECT * FROM USER")
+    # user = get_maxID(conn)
+    # stmt_1 = ibm_db.exec_immediate(conn, "SELECT * FROM USER")
+    
+    cont = dict()
+    try:
+        user_s.send_sms("not_a_real_password")
+        cont = passw.content(user=user["id"], status="ok")
+    except:
+        cont = passw.content(user=user["id"], err="Not able to send MSG", status="ok")
 
-    cont = passw.content(user=user["id"], err=ibm_db.stmt_errormsg(), status="ok")
     return jsonify(cont)
 
 # return passw.random_password()
@@ -95,26 +104,20 @@ def user(user_id):
 """ ADDING NEW USER"""
 @app.route('/add', methods=['POST', 'GET'])
 def add_user():
-    #Get JSON
-    data = request.get_json()
-
     #Connect To database
     conn = passw.connect()
+    if not conn:
+        return {
+            "data": {
+                "user": "error"
+            },
+            "status": "bad",
+            "error": "not connected to databse",
+            "code": 100
+        }
 
-    if conn:
-        print("Connected")
-    else:
-        print("Not connected")
-
-    #Store JSON in Dictionary (easy use)
-    store_data = {
-        "name": data["data"]["user"]["NAME"],
-        "email": data["data"]["user"]["EMAIL"],
-        "phone_number": data["data"]["user"]["PHONENUMBER"],
-        "employeeType_id": data["data"]["user"]["EMPLOYEETYPE_ID"],
-        "siteLocation_id": data["data"]["user"]["SITELOCATION_ID"],
-        "password": passw.random_password()
-    }
+    #Get JSON Data Parsed
+    store_data = passw.getJSON()
 
     #Make SQL Queries
     sql_add_user = "INSERT INTO user (name, email, phonenumber, employeeType_id, siteLocation_id) VALUES (?, ?, ?, ?, ?)"
@@ -127,7 +130,6 @@ def add_user():
     stmt_bio  = ibm_db.prepare(conn, sql_add_bio)
 
     cont = dict()
-
     #Try to Execute SQL queries, if so return json with user_id and ibm_db error
     #Else Return json with user_id,
     try:
@@ -138,13 +140,16 @@ def add_user():
 
             #ADDING TO PASSWORD TABLE
             last_user = get_maxID(conn)
-            params = last_user["id"], store_data["password"]
+            params = last_user["id"], store_data["password"][1]
             ibm_db.execute(stmt_pass, params)
 
             #ADDING TO INTERNBIO TABLE
             params_1 = last_user["id"], "Software Engineer"
             ibm_db.execute(stmt_bio, params_1)
-            cont = passw.content(user=last_user["id"], status="ok")
+
+            #Send Message 
+            user_s.send_sms(store_data["password"][0], store_data["phone_number"])
+            cont = passw.content(user=last_user["id"], user_data=last_user, status="ok")
     except:
         cont = passw.content(user=None, err=ibm_db.stmt_errormsg(), status="bad")
         ibm_db.rollback(conn)

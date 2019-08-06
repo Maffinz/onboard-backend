@@ -96,13 +96,13 @@ def get_employeetype():
 
 
     stmt = ibm_db.exec_immediate(conn, "SELECT * from EMPLOYEETYPE")
-    data = []
+    data = {}
     result = ibm_db.fetch_assoc(stmt)
     while result != False:
-        data.append(result)
+        data[result["ID"]] = {"DATA": result["TYPE"], "ID": result["ID"]}
         result = ibm_db.fetch_assoc(stmt)
     # _dict = ibm_db.fetch_assoc(stmt)
-    content = {'data': data}
+    content = {'data': data, "status": "ok"}
     ibm_db.close(conn)
     if conn:
         return jsonify(content)
@@ -140,12 +140,12 @@ def get_sitelocation():
     result = ibm_db.fetch_assoc(stmt)
 
     while result != False:
-        data[result["ID"]] = {"SITE": result["SITE"], "ID": result["ID"]}
+        data[result["ID"]] = {"DATA": result["SITE"], "ID": result["ID"]}
         result = ibm_db.fetch_assoc(stmt)
     # _dict = ibm_db.fetch_assoc(stmt)
     ibm_db.close(conn)
-    # content = {'data': data}
+    content = {'data': data, "status": "ok"}
     if conn:
-        return jsonify(data)
+        return jsonify(content)
     return "not connected"
     

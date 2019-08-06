@@ -3,25 +3,31 @@ import string
 import ibm_db
 # import hashlib, uuid
 from flask_bcrypt import generate_password_hash
+from flask import request
 
 
 def random_password(stringLength=10):
     """Generate a random string of fixed length and hashing it"""
+    pass_info = list()
     letters = string.ascii_lowercase
     password =  ''.join(random.choice(letters) for i in range(stringLength))
-    return generate_password_hash(password, 10).decode('utf-8')
+    pass_info.append(password)
+    pass_info.append(generate_password_hash(password, 10).decode('utf-8'))
+    return pass_info
 
-    # salt = uuid.uuid4().hex
-    # return  hashlib.sha512(password.encode('utf-8') + salt.encode('utf-8')).hexdigest()
-    # return hashed
-
-def content(user=-1, err="None", status="bad"):
+def content(user=-1, user_data=None, err="None", status="bad"):
+    code = 0
+    if status == "bad":
+        code = 300
+        
     return {
         "data": {
-            "id": user,
+            "user": user_data,
         },
+        "id": user,
         "status": status,
-        "error": err
+        "error": err,
+        "code": code,
     }
 
 def connect(database=None, hostname=None, port=None, protocol=None, uid=None, pwd=None):
@@ -34,3 +40,26 @@ def connect(database=None, hostname=None, port=None, protocol=None, uid=None, pw
         'PWD=n8rbtmpr-0nfphqs;',
         '',
         '')
+
+def getJSON():
+    #Get JSON
+    data = request.get_json()
+
+    try:
+        return {
+            "name": data["data"]["user"]["NAME"],
+            "email": data["data"]["user"]["EMAIL"],
+            "phone_number": data["data"]["user"]["PHONENUMBER"],
+            "employeeType_id": data["data"]["user"]["EMPLOYEETYPE_ID"],
+            "siteLocation_id": data["data"]["user"]["SITELOCATION_ID"],
+            "password": random_password() 
+        }
+    except:
+        return {
+            "data": {
+                "user": "error"
+            },
+            "status": "bad",
+            "error": "Wrong JSON format",
+            "code": 200
+        }
