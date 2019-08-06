@@ -11,13 +11,6 @@ CORS(app)
 
 c = SimpleCookie()
 
-# @app.route("/")
-# def home():
-#     if not session.get("id") is None:
-#         return "Logged in"
-#     else:
-#         return "Not logged in"
-
 
 conn = ibm_db.connect(
     'DATABASE=BLUDB;'
