@@ -3,6 +3,7 @@
 
 from ibmcloudenv import IBMCloudEnv
 from . import service_manager
+from . import generate_password
 IBMCloudEnv.init()
 
 
