@@ -30,7 +30,6 @@ def login():
         email = credentials.get("email")
         pword = credentials.get("password")  
         
-
         get_user = ibm_db.exec_immediate(conn, f"SELECT * FROM user WHERE email = '{email}'")
         user = ibm_db.fetch_assoc(get_user)
         uid = user["ID"]
@@ -40,9 +39,10 @@ def login():
         hashedpw = password["PASSWORD_HASH"]
 
         if bcrypt.checkpw(pword.encode('utf8'), hashedpw.encode('utf8')):
-            return sessionLogin(uid)
+            cont = {"status": "ok", "cookie": sessionLogin(uid)}
         else:
-            return "Incorrect credentials"
+            cont = {"status": "bad"}
+        return jsonify(cont)
     return "Insufficient login data"
 
 
