@@ -25,12 +25,12 @@ def get_maxID(conn=None):
     cont = dict()
     try:
         # "SELECT USER.ID, USER.NAME, USER.EMAIL, USER.PHONENUMBER, EMPLOYEETYPE.TYPE, SITELOCATION.SITE  FROM ((USER INNER JOIN EMPLOYEETYPE ON USER.EMPLOYEETYPE_ID = EMPLOYEETYPE.ID) INNER JOIN SITELOCATION ON USER.SITELOCATION_ID = SITELOCATION.ID)"
-        sql = "Select user.id, user.name, user.email, user.phonenumber, employeetype.type, sitelocation.site from  (( USER INNER JOIN EMPLOYEETYPE ON USER.EMPLOYEETYPE_ID = EMPLOYEETYPE.ID) INNER JOIN SITELOCATION ON USER.SITELOCATION_ID = SITELOCATION.ID) where USER.id = (Select Max(id) from user)"
+        # sql = "Select user.id, user.name, user.email, user.phonenumber, employeetype.type, sitelocation.site from  (( USER INNER JOIN EMPLOYEETYPE ON USER.EMPLOYEETYPE_ID = EMPLOYEETYPE.ID) INNER JOIN SITELOCATION ON USER.SITELOCATION_ID = SITELOCATION.ID) where USER.id = (Select Max(id) from user)"
+        sql = "SELECT * FROM user WHERE  user.id = (SELECT MAX(id) FROM user)"
         stmt = ibm_db.exec_immediate(conn, sql)
         result = ibm_db.fetch_assoc(stmt)
-        cont = {"data": {
+        cont = {
             "user": result,
-            },
             "error": ibm_db.stmt_errormsg(),
             "status": "ok",
             "id": result["ID"]
@@ -74,6 +74,9 @@ def user(user_id):
     #Connect To the database
     conn = passw.connect()
 
+    if not conn:
+        return jsonify(passw.reg_content(status="bad", error="Not connected to database", code=100))
+
     cont = dict()
 
     #Make SQL queries
@@ -87,12 +90,12 @@ def user(user_id):
     #Fails: Return status bad
     try:
         if request.method == 'DELETE':
-            cont = {"status": "ok"}
+            cont = passw.reg_content(status="ok", error="none", code=0)
             stmt_1 = ibm_db.exec_immediate(conn, sql_delete_user)
             stmt_2 = ibm_db.exec_immediate(conn, sql_delete_user_bio)
             stmt_3 = ibm_db.exec_immediate(conn, sql_detele_password)
     except:
-        cont = {"status": "bad", "error": ibm_db.stmt_errormsg()}
+        cont = passw.reg_content(status="bad", error=ibm_db.stmt_errormsg(), code= 400)
         ibm_db.rollback(conn)
     finally:
         ibm_db.close(conn)
@@ -107,14 +110,7 @@ def add_user():
     #Connect To database
     conn = passw.connect()
     if not conn:
-        return {
-            "data": {
-                "user": "error"
-            },
-            "status": "bad",
-            "error": "not connected to databse",
-            "code": 100
-        }
+        return passw.reg_content(status="bad", error="Not connected to database", code=100)
 
     #Get JSON Data Parsed
     store_data = passw.getJSON()
@@ -147,8 +143,14 @@ def add_user():
             params_1 = last_user["id"], "Software Engineer"
             ibm_db.execute(stmt_bio, params_1)
 
+            print("Add User")
+            print(store_data["phone_number"])
             #Send Message 
-            user_s.send_sms(store_data["password"][0], store_data["phone_number"])
+            try:
+                user_s.send_sms(store_data["password"][0], store_data["phone_number"])
+            except:
+                pass
+
             cont = passw.content(user=last_user["id"], user_data=last_user, status="ok")
     except:
         cont = passw.content(user=None, err=ibm_db.stmt_errormsg(), status="bad")
@@ -156,3 +158,18 @@ def add_user():
     finally:
         ibm_db.close(conn)
         return jsonify(cont)
+
+
+@app.route('/add_event', methods=["POST", "GET"])
+def add_event():
+    #Connect To Database
+    conn = passw.connect()
+    ibm_db.close(conn)
+
+@app.route("/edit", methods=["POST", "GET"])
+def edit_user():
+    conn = passw.connect() # Connect to database
+    data = passw.getEditJSON() # Get edit JSON from user
+
+    #SQL Statement and prepare
+    sql_update = "UPDATE internbio SET "

@@ -3,18 +3,23 @@ import ibm_db
 from flask import request
 
 from twilio.rest import Client
+from os import environ
 
-account_sid = "ACe343777b1ab47d98dd2c71e53a6b8030"
-auth_token = "3e08fdfc79ed6fe1781664cbc6a5f2a7"
+account_sid = environ.get('TWILIO_SI')
+auth_token = environ.get('TWILIO_AUTH')
 
 def send_sms(password, phonenumber):
     client = Client(account_sid, auth_token)
 
     message = client.messages \
                     .create(
-                        body="You been added to OnBoard @ IBM\n Here is your password\n\n {}".format(password),
+                        body="\nYou been added to OnBoard @ IBM\n Here is your password\n\n {}".format(password),
                         from_='+19564036594',
-                        to='+1{}'.format(phonenumber)
+                        to='+1{0}'.format(phonenumber)
                     )
 
+    print("Phone Number: " + phonenumber)
     print(message.sid)
+
+def check_email(email):
+    pass
