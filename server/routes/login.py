@@ -7,9 +7,9 @@ import json
 import secrets
 from flask_cors import CORS
 import datetime
+import os
 CORS(app)
 
-c = SimpleCookie()
 
 
 conn = ibm_db.connect(
@@ -22,27 +22,29 @@ conn = ibm_db.connect(
     '',
     '')
 
-@app.route("/logintest", methods = ['GET', 'POST'])
-def login(email = "simran.puri@ibm.com", pword = "tbgkytwfup"):
-    if email:
+@app.route("/login", methods = ['GET', 'POST'])
+def login():
+    data = request.get_json()
+    if request.method == 'POST':
+        credentials = data["data"]["credentials"]
+        email = credentials.get("email")
+        pword = credentials.get("password")  
+        
+
         get_user = ibm_db.exec_immediate(conn, f"SELECT * FROM user WHERE email = '{email}'")
         user = ibm_db.fetch_assoc(get_user)
         uid = user["ID"]
 
-        if pword:
-            get_password = ibm_db.exec_immediate(conn, f"SELECT password FROM password WHERE user_id = {uid}")
-            password = ibm_db.fetch_assoc(get_password)
-            upassword = password["PASSWORD"]
+        get_password = ibm_db.exec_immediate(conn, f"SELECT password_hash FROM password WHERE user_id = {uid}")
+        password = ibm_db.fetch_assoc(get_password)
+        hashedpw = password["PASSWORD_HASH"]
 
-            if pword == upassword:
-            #if bcrypt.checkpw(pword, upassword):
-                addSession(uid)
-                return c.output()
-            else:
-                return "Incorrect credentials"
-        return session_login(uid)
+        if bcrypt.checkpw(pword.encode('utf8'), hashedpw.encode('utf8')):
+            return sessionLogin(uid)
+        else:
+            return "Incorrect credentials"
     return "Insufficient login data"
-    # ibm_db.close(conn)
+
 
 
 def addSession(uid):
@@ -58,21 +60,20 @@ def addSession(uid):
     sessid = generateSessId()
     result = ibm_db.exec_immediate(conn, f"INSERT INTO session (session, user_id) VALUES ('{sessid}', {uid})")
     if result:
-        setCookie(sessid)
-        return sessid
+        return setCookie(sessid) #set cookie with new session id
     return None
 
-def session_login(uid):
-    sess = findsess(uid)
+def sessionLogin(uid):
+    sess = findSess(uid)
     if sess:
         currentuser = finduser(sess["USER_ID"])
         if currentuser:
             return setCookie(sess["SESSION"]) #renew cookie for 1 more hour
         return "No user found"
-    return "No session found"
+    else:
+        return addSession(uid)
 
-
-def findsess(uid):
+def findSess(uid):
     get_sess = ibm_db.exec_immediate(conn, f"SELECT * FROM session WHERE user_id = {uid}")
     sess = ibm_db.fetch_assoc(get_sess)
     if sess:
@@ -87,9 +88,11 @@ def finduser(uid):
     return None
     
 def setCookie(sessid):
-    expiration = datetime.datetime.now() + datetime.timedelta(seconds=60*60)
+    expiration = datetime.datetime.now() + datetime.timedelta(hours=-4, seconds=60*60) #current EST + 1 hour
+    c = SimpleCookie()
     c["session"] = sessid
-    c["session"]["expires"] = expiration.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+    c["session"]["secure"] = True
+    c["session"]["expires"] = expiration.strftime("%a, %d-%b-%Y %H:%M:%S EST")
     return c.output()
 
 def generateSessId():
@@ -97,10 +100,12 @@ def generateSessId():
 
 
 @app.route('/logout')
-def logout(uid=23):
+def logout(uid=112):
+    expiration = datetime.datetime.now() + datetime.timedelta(hours=-4, seconds=-60*60) #current EST - 1 hour
+    c = SimpleCookie()
     c["session"] = ""
-    c["session"]["expires"] =(datetime.datetime.now() - datetime.timedelta(seconds=60*60)).strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+    c["session"]["expires"] =expiration.strftime("%a, %d-%b-%Y %H:%M:%S EST")
     
     ibm_db.exec_immediate(conn, f"DELETE from session WHERE USER_ID = {uid}")
     
-    return "logged out"
+    return c.output()
