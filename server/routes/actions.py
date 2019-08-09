@@ -8,7 +8,7 @@ import server.services.generate_password as passw
 import server.services.user_service as user_s
 # from server.services.generate_password import random_password as random_pass
 
-CORS(app)
+CORS(app, supports_credentials=True)
 
 
 # Functions
@@ -165,11 +165,3 @@ def add_event():
     #Connect To Database
     conn = passw.connect()
     ibm_db.close(conn)
-
-@app.route("/edit", methods=["POST", "GET"])
-def edit_user():
-    conn = passw.connect() # Connect to database
-    data = passw.getEditJSON() # Get edit JSON from user
-
-    #SQL Statement and prepare
-    sql_update = "UPDATE internbio SET "

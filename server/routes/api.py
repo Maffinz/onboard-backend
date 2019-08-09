@@ -55,15 +55,20 @@ def get_bios(user_id):
         '',
         '')
 
-    stmt = ibm_db.exec_immediate(conn, "SELECT * from INTERNBIO")
-    data = []
+    stmt = ibm_db.exec_immediate(conn, "SELECT * from INTERNBIO WHERE USER_ID={}".format(user_id))
+    data = dict()
     result = ibm_db.fetch_assoc(stmt)
-    while result != False:
-        data.append(result)
-        result = ibm_db.fetch_assoc(stmt)
+    # return result
+    # while result != False:
+    #     data[result[""]]
+    #     result = ibm_db.fetch_assoc(stmt)
     # _dict = ibm_db.fetch_assoc(stmt)
     ibm_db.close(conn)
-    content = {'data': data}
+    content = {"data": { 
+            "user": result,
+        },
+    }
+    
     if conn:
         return jsonify(content)
     return "not connected"

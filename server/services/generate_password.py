@@ -64,38 +64,46 @@ def getJSON():
 
 def getEditJSON():
     data = request.get_json()
-
     try:
         return {
-            # "NAME": data["data"]["user"]["NAME"],
-            # "EMAIL": data["data"]["user"]["EMAIL"],
-            "PHONENUMBER": data["data"]["user"]["PHONENUMBER"],
-            # "EMPLOYEETYPE_ID": data["data"]["user"]["EMPLOYEETYPE_ID"],
-            # "SITELOCATION_ID": data["data"]["user"]["SITELOCATION_ID"],
-            "USER_ID": data["data"]["user"]["USER_ID"],
-            "HOUSING_ID": data["data"]["user"]["HOUSING_ID"],
-            "DESCRIPTION": data["data"]["user"]["DESCRIPTION"],
-            "SOCIAL_MEDIA": data["data"]["user"]["SOCIAL_MEDIA"],
-            "CAR": data["data"]["user"]["CAR"],
-            "SCHOOL": data["data"]["user"]["SCHOOL"],
-            "SEX": data["data"]["user"]["SEX"],
-            "EDUCATION_LEVEL": data["data"]["user"]["EDUCATION_LEVEL"]
+            "USER": {
+                # "NAME": data["data"]["user"]["NAME"],
+                # "EMAIL": data["data"]["user"]["EMAIL"],
+                # "EMPLOYEETYPE_ID": data["data"]["user"]["EMPLOYEETYPE_ID"],
+                # "SITELOCATION_ID": data["data"]["user"]["SITELOCATION_ID"],
+                "PHONENUMBER": data["data"]["user"]["PHONENUMBER"],
+                "USER_ID": data["data"]["user"]["USER_ID"],
+            },
+            "INTERNBIO": {
+                "HOUSING_ID": data["data"]["user"]["HOUSING_ID"],
+                "DESCRIPTION": data["data"]["user"]["DESCRIPTION"],
+                "SOCIAL_MEDIA": data["data"]["user"]["SOCIAL_MEDIA"],
+                "CAR": data["data"]["user"]["CAR"],
+                "SCHOOL": data["data"]["user"]["SCHOOL"],
+                "SEX": data["data"]["user"]["SEX"],
+                "EDUCATION_LEVEL": data["data"]["user"]["EDUCATION_LEVEL"]
+            },
+            
         }
     except:
         return {
-            # "NAME": None,
-            # "EMAIL": None,
-            "PHONENUMBER": None,
-            # "EMPLOYEETYPE_ID": None,
-            # "SITELOCATION_ID": None,
-            "USER_ID": None,
-            "HOUSING_ID": None,
-            "DESCRIPTION": None,
-            "SOCIAL_MEDIA": None,
-            "CAR": None,
-            "SCHOOL": None,
-            "SEX": None,
-            "EDUCATION_LEVEL": None
+            "USER": {
+                "NAME": data["data"]["user"]["NAME"],
+                "EMAIL": data["data"]["user"]["EMAIL"],
+                "EMPLOYEETYPE_ID": data["data"]["user"]["EMPLOYEETYPE_ID"],
+                "SITELOCATION_ID": data["data"]["user"]["SITELOCATION_ID"],
+                "PHONENUMBER": data["data"]["user"]["PHONENUMBER"],
+            },
+            "INTERNBIO": {
+                "HOUSING_ID": data["data"]["user"]["HOUSING_ID"],
+                "DESCRIPTION": data["data"]["user"]["DESCRIPTION"],
+                "SOCIAL_MEDIA": data["data"]["user"]["SOCIAL_MEDIA"],
+                "CAR": data["data"]["user"]["CAR"],
+                "SCHOOL": data["data"]["user"]["SCHOOL"],
+                "SEX": data["data"]["user"]["SEX"],
+                "EDUCATION_LEVEL": data["data"]["user"]["EDUCATION_LEVEL"]
+            },
+            "USER_ID": data["data"]["user"]["USER_ID"],
         }
 
 def getEventJSON(): #Work on Adding Event to database
